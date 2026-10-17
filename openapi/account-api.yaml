@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: Account Opening Service API
+  description: Open and view customer bank accounts.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8082
+    description: Local development
+
+tags:
+  - name: Accounts
+    description: Account opening and lookup
+
+paths:
+  /accounts:
+    post:
+      tags: [Accounts]
+      operationId: openAccount
+      summary: Open a new bank account for a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenAccountRequest'
+      responses:
+        '201':
+          description: Account opened successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      operationId: getAccount
+      summary: Get account details by account ID
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Account found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    OpenAccountRequest:
+      type: object
+      required: [customerId, accountType, initialDeposit]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        initialDeposit:
+          type: number
+          format: double
+          minimum: 0
+          example: 1000.00
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          default: INR
+          example: INR
+
+    AccountResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        accountNumber:
+          type: string
+          example: "100200300400"
+        customerId:
+          type: string
+          format: uuid
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        balance:
+          type: number
+          format: double
+          example: 1000.00
+        currency:
+          type: string
+          example: INR
+        createdAt:
+          type: string
+          format: date-time
+
+    AccountType:
+      type: string
+      enum: [SAVINGS, CURRENT]
+
+    AccountStatus:
+      type: string
+      enum: [PENDING, ACTIVE, FROZEN, CLOSED]
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: Initial deposit must not be negative
+        path:
+          type: string
+          example: /accounts
