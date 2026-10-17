@@ -121,7 +121,7 @@ components:
         email:
           type: string
           format: email
-          example: nadeem@example.com
+          example: nadeemanwar@example.com
         password:
           type: string
           example: Test@1234
