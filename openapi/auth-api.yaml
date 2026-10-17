@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: Auth Service API
+  description: Customer registration and login for the banking platform.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Customer registration and login
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      summary: Register a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Customer registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: A customer with this email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Wrong email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Nadeem Anwar
+        email:
+          type: string
+          format: email
+          maxLength: 150
+          example: nadeem@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+          example: Test@1234
+
+    RegisterResponse:
+      type: object
+      properties:
+        customerId:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        name:
+          type: string
+          example: Nadeem Anwar
+        email:
+          type: string
+          example: nadeem@example.com
+        message:
+          type: string
+          example: Registered successfully
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: nadeem@example.com
+        password:
+          type: string
+          example: Test@1234
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Short-lived token sent with every request
+        refreshToken:
+          type: string
+          description: Long-lived token used to get a new access token
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Access token lifetime in seconds
+          example: 900
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: Email format is invalid
+        path:
+          type: string
+          example: /auth/register
